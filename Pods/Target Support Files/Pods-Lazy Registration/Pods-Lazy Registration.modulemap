@@ -1,0 +1,6 @@
+framework module Pods_Lazy_Registration {
+  umbrella header "Pods-Lazy Registration-umbrella.h"
+
+  export *
+  module * { export * }
+}
