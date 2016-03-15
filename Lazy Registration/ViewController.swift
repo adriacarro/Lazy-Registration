@@ -27,6 +27,14 @@ class ViewController: UIViewController, GIDSignInUIDelegate, FBSDKLoginButtonDel
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setupFacebookLogin()
+        setupGoogleLogin()
+        
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "googleSignIn:", name: "GSignIn", object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "signOut:", name: "SignOut", object: nil)
+    }
+
+    func setupFacebookLogin() {
         if FBSDKAccessToken.currentAccessToken() == nil {
             print("no login with facebook")
         }
@@ -35,18 +43,19 @@ class ViewController: UIViewController, GIDSignInUIDelegate, FBSDKLoginButtonDel
         }
         
         signInFacebookButton.readPermissions = ["public_profile", "email"]
-        
-        GIDSignIn.sharedInstance().uiDelegate = self
-        
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "googleSignIn:", name: "GSignIn", object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "signOut:", name: "SignOut", object: nil)
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
+    func setupGoogleLogin() {
+        GIDSignIn.sharedInstance().uiDelegate = self
+        
+        
+        if GIDSignIn.sharedInstance().hasAuthInKeychain() {
+            print("login with google")
+        }
+        else {
+            print("no login with Google")
+        }
+    }
     
     // MARK: - Google Login
     
@@ -70,7 +79,6 @@ class ViewController: UIViewController, GIDSignInUIDelegate, FBSDKLoginButtonDel
     }
     
     func googleSignIn(notification: NSNotification){
-        print(notification.userInfo)
         if let info = notification.userInfo {
             if let user = info["user"] as? GIDGoogleUser {
                 signInTitle.text = "Sign in with Google!"
@@ -87,9 +95,6 @@ class ViewController: UIViewController, GIDSignInUIDelegate, FBSDKLoginButtonDel
     
     func loginButton(loginButton: FBSDKLoginButton!, didCompleteWithResult result: FBSDKLoginManagerLoginResult!, error: NSError!) {
         if error == nil {
-            
-            print("login complete")
-            print(result.grantedPermissions)
             
             let req = FBSDKGraphRequest(graphPath: "me", parameters: ["fields":"email,name"], tokenString: FBSDKAccessToken.currentAccessToken().tokenString, version: nil, HTTPMethod: "GET")
             req.startWithCompletionHandler({ (connection, result, error : NSError!) -> Void in
